@@ -41,10 +41,6 @@ be 1.5?).
 - Validate PDF.
 - Dockerize.
 
-testset:
-/Users/haighton_macbook/Documents/KB/Data/testsets/MMECAL02_000000003_1_01/MMECAL02_179966004
-
-/Users/haighton_macbook/Documents/KB/Data/testsets/templates/mets-templates/MMTUK04_000000002_v1/MMTUK04_000000002_v1.xml
 """
 
 import sys
