@@ -20,6 +20,7 @@ corrupt or missing.
 ### Saxon-HE 9.7.0.21J
 This version supports XSLT 2.0, also needs Java to be installed on the computer.
 [download](https://sourceforge.net/projects/saxon/files/Saxon-HE/9.7/)
+[documentation](https://www.saxonica.com/documentation9.7/documentation.xml)
 
 ### hocr-tools
 This software can be installed with `python2 -m pip hocr-tools`
@@ -37,6 +38,7 @@ Moet uit de METS waarschijnlijk.
 - Check vPDF version in specifications. PyPDF only makes version 1.3 (should
 be 1.5?).
 - Check JPG compression.
+- Validate PDF.
 - Dockerize.
 
 testset:
