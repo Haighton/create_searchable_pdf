@@ -1,0 +1,5 @@
+lxml==4.6.2
+Pillow==8.0.1
+PyPDF2==1.26.0
+reportlab==3.5.55
+tqdm==4.54.0

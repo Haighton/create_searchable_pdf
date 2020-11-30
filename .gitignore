@@ -1,2 +1,6 @@
 venv-pdf/
-output/
+
+src/dump.xml
+src/output/
+src/object/
+dev_run.Dockerfile

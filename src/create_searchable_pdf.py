@@ -53,8 +53,6 @@ from lxml import etree
 from PyPDF2 import PdfFileMerger
 from tqdm import tqdm
 
-
-TEMP_DIR = r'../output/tmp'
 XSL_FILE = r'alto2hocr.xsl'
 SAXON_JAR = r'SaxonHE9-7-0-21J/saxon9he.jar'
 
@@ -82,7 +80,7 @@ def alto2hocr(alto_files):
     for alto_file in alto_files:
         filename = os.path.basename(alto_file)
         filename = filename.replace('_alto.xml', '')
-        hocr_path = os.path.join(TEMP_DIR, filename + ".hocr")
+        hocr_path = os.path.join(temp_dir, filename + ".hocr")
         temp_hocr.append(hocr_path)
 
         # Call Saxon for XSL transformation.
@@ -101,29 +99,28 @@ def convert2jpg(scans):
         filename = os.path.basename(scan)
         filename = filename.replace('_access.jp2', '')
         im = Image.open(scan)
-        out_path = os.path.join(TEMP_DIR, filename + '.jpg')
+        out_path = os.path.join(temp_dir, filename + '.jpg')
         temp_images.append(out_path)
         im.save(out_path)
     return(temp_images)
 
 
-def create_pdf(TEMP_DIR, path_object):
+def create_pdf(temp_dir, path_object, temp_images):
     """Combines hOCR and JPG into a searchable PDF."""
-    fname = os.path.basename(path_object) + '_pdf.pdf'
-    path_pdf = os.path.join(TEMP_DIR, fname)
-    subprocess.call(f'hocr-pdf {TEMP_DIR} > {path_pdf}',
+    # fname = os.path.basename(path_object) + '_pdf.pdf'
+    fname = os.path.basename(temp_images[0]).replace('_00001.jpg', '_pdf.pdf')
+    path_pdf = os.path.join(temp_dir, fname)
+    subprocess.call(f'hocr-pdf {temp_dir} > {path_pdf}',
                     shell=True)
     return(path_pdf)
 
 
-def add_pdf_did(path_batch, path_mddump, path_pdf):
-    with open(path_mddump, 'rb') as mddump_xml:
+def add_pdf_did(path_batch, path_xml, path_pdf):
+    """Adds metadata from Metadatadump XML to PDF Document Information Dict."""
+    with open(path_xml, 'rb') as mddump_xml:
         dump = etree.parse(mddump_xml)
-        # barcode = os.path.basename(path_batch)
-        object_id = 'MMTUK04210988001'
+        object_id = os.path.basename(path_pdf).replace('_pdf.pdf', '').replace('_', '')
         material = dump.xpath('/shipment/@material')[0]
-        # print(material)
-
         try:
             if material == 'tijdschriften' or material == 'kranten':
                 referredRecordID = dump.xpath(f'//issue[@ID="{object_id}"]\
@@ -223,29 +220,31 @@ def add_pdf_did(path_batch, path_mddump, path_pdf):
         merger.addNetadata({
             '/Author': author
         })
-    # Save final PDF in output folder.
-    merger.write(f'../output/{os.path.basename(path_pdf)}')
+    # Save final PDF in output_dir.
+    merger.write(os.path.join(output_dir, os.path.basename(path_pdf)))
     merger.close()
 
 
 if __name__ == '__main__':
-    # Create output and tmp folders.
-    if not os.path.exists('../output'):
+    # Map local directories to dirs in Docker container.
+    temp_dir = '/usr/src/tmp'
+    output_dir = '/usr/src/output'
+    path_batch = '/usr/src/object'
+    path_xml = '/usr/src/dump.xml'
+
+    if not os.path.exists(temp_dir):
         try:
-            os.mkdir('../output')
-            os.mkdir('../output/tmp')
+            os.mkdir(temp_dir)
+        except OSError:
+            print('Creation of output directory failed!')
+    if not os.path.exists(output_dir):
+        try:
+            os.mkdir(output_dir)
         except OSError:
             print('Creation of output directory failed!')
 
-    if not os.path.exists('../output/tmp'):
-        try:
-            os.mkdir('../output/tmp')
-        except OSError:
-            print("can't make ../output/tmp directory!")
-
-
     print('\nLooking for files.')
-    alto_files, scans = alto_paths(sys.argv[1])
+    alto_files, scans = alto_paths(path_batch)
 
     print('\nTransforming ALTO-XML into hOCR.')
     temp_hocr = alto2hocr(alto_files)
@@ -254,14 +253,14 @@ if __name__ == '__main__':
     temp_images = convert2jpg(scans)
 
     print('\nCreating searchable PDF file.')
-    path_pdf = create_pdf(TEMP_DIR, sys.argv[1])
-    add_pdf_did(sys.argv[1], sys.argv[2], path_pdf)
+    path_pdf = create_pdf(temp_dir, path_batch, temp_images)
+    add_pdf_did(path_batch, path_xml, path_pdf)
 
     # Remove tmp files and folder.
     temp_files = temp_hocr + temp_images + [path_pdf]
     for temp_file in temp_files:
         os.remove(temp_file)
-    os.rmdir('../output/tmp')
+    os.rmdir(temp_dir)
 
-    print(f'\nCreated searchable PDF in {os.getcwd()}/output/{os.path.basename(path_pdf)}')
+    print(f'\nCreated searchable PDF {os.path.basename(path_pdf)}')
     print('\nDONE!')
