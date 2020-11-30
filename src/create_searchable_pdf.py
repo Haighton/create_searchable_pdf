@@ -27,20 +27,19 @@ This software can be installed with `python2 -m pip hocr-tools`
 https://github.com/ocropus/hocr-tools
 
 ## Usage 
-An object contains ALTO-XML files and JP2 image files.
-`python3 create_searchable_pdf.py "/PATH/TO/OBJECT" "/PATH/TO/METADATADUMP"`
+See Dockerfile.
 
 
 ## To do
 - Add Creator to PDF Document Info. 
-specs: "de naam van de software die de oorspronkelijke scan heeft gecreëerd."
-Moet uit de METS waarschijnlijk.
-- Check vPDF version in specifications. PyPDF only makes version 1.3 (should
-be 1.5?).
-- Check JPG compression.
-- Validate PDF.
-- Dockerize.
+    specs: "de naam van de software die de oorspronkelijke scan heeft gecreëerd."
+    Moet uit de METS waarschijnlijk?
+- Check vPDF version in specifications. PyPDF only makes version 1.3
+    (should be 1.5?).
+- Double check all DID fields.
+- Check JPG compression for PDF.
 
+- Validate PDF?
 """
 
 import sys
